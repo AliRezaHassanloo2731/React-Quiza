@@ -6,6 +6,8 @@ import Header from "./components/Header";
 import Main from "./components/Main";
 import Loader from "./components/Loader";
 import Error from "./components/Error";
+import StartScreen from "./components/StartScreen";
+import Question from "./components/Question";
 
 const initialState = {
   questions: [],
@@ -15,6 +17,9 @@ const initialState = {
   // do it with just on state
   //STATES :LOAD,Err,Rady,Active,Finished
   status: "loading",
+  idx: 0,
+  answer: null,
+  points: 0,
 };
 
 function reducer(state, action) {
@@ -29,12 +34,28 @@ function reducer(state, action) {
     case "dataFailed":
       return {
         ...state,
-        staus: "error",
+        status: "error",
       };
 
-    // case "loading":
-    //   console.log("loading");
-    //   break;
+    case "start":
+      return {
+        ...state,
+        status: "active",
+      };
+
+    case "newAnswer":
+      const question =
+        state.question.at(state.idx);
+      return {
+        ...state,
+        answer: action.payload,
+        points:
+          action.payload ===
+          question.correctOption
+            ? state.points +
+              question.points
+            : state.points,
+      };
 
     default:
       throw new Error(
@@ -48,7 +69,14 @@ function App() {
     reducer,
     initialState
   );
-  const { questions, status } = state;
+  const {
+    questions,
+    status,
+    idx,
+    answer,
+  } = state;
+
+  const numQuestions = questions.length;
 
   useEffect(function () {
     async function fetchData() {
@@ -86,7 +114,19 @@ function App() {
         {status === "error" && (
           <Error />
         )}
-        {status === "ready"}
+        {status === "ready" && (
+          <StartScreen
+            numQuestions={numQuestions}
+            dispatch={dispatch}
+          />
+        )}
+        {status === "active" && (
+          <Question
+            question={questions[idx]}
+            dispatch={dispatch}
+            answer={answer}
+          />
+        )}
       </Main>
     </div>
   );
