@@ -8,14 +8,12 @@ import Loader from "./components/Loader";
 import Error from "./components/Error";
 import StartScreen from "./components/StartScreen";
 import Question from "./components/Question";
+import NextButton from "./components/NextButton";
+import Progress from "./components/Progress";
 
 const initialState = {
   questions: [],
 
-  //NUMBER OF STATE WE NEED, WE MUST CREATE A UNIC USTSTAE
-  // FOR ALL OF THEM SEPERATELY SOMEHOW IN USEREDUCER WE
-  // do it with just on state
-  //STATES :LOAD,Err,Rady,Active,Finished
   status: "loading",
   idx: 0,
   answer: null,
@@ -45,7 +43,7 @@ function reducer(state, action) {
 
     case "newAnswer":
       const question =
-        state.question.at(state.idx);
+        state.questions.at(state.idx);
       return {
         ...state,
         answer: action.payload,
@@ -55,6 +53,13 @@ function reducer(state, action) {
             ? state.points +
               question.points
             : state.points,
+      };
+
+    case "nextQuestion":
+      return {
+        ...state,
+        idx: state.idx + 1,
+        answer: null,
       };
 
     default:
@@ -74,9 +79,16 @@ function App() {
     status,
     idx,
     answer,
+    points,
   } = state;
 
   const numQuestions = questions.length;
+  const maxPossiblepoints =
+    questions.reduce(
+      (prev, curr) =>
+        prev + curr.points,
+      0
+    );
 
   useEffect(function () {
     async function fetchData() {
@@ -121,11 +133,28 @@ function App() {
           />
         )}
         {status === "active" && (
-          <Question
-            question={questions[idx]}
-            dispatch={dispatch}
-            answer={answer}
-          />
+          <>
+            <Progress
+              idx={idx}
+              points={points}
+              numQuestions={
+                numQuestions
+              }
+              maxPossiblepoints={
+                maxPossiblepoints
+              }
+              answer={answer}
+            />
+            <Question
+              question={questions[idx]}
+              dispatch={dispatch}
+              answer={answer}
+            />
+            <NextButton
+              dispatch={dispatch}
+              answer={answer}
+            />
+          </>
         )}
       </Main>
     </div>
